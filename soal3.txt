@@ -1,0 +1,54 @@
+============================================================
+EXTRA SCHEMA & ALASAN MEMILIH POSTGRESQL
+============================================================
+
+------------------------------------------------------------
+1. SCHEMA TAMBAHAN
+------------------------------------------------------------
+
+TABEL USERS
+- avatar_url     : URL foto profil user
+- last_seen_at   : Untuk fitur "terakhir dilihat"
+
+TABEL CONVERSATIONS
+- description    : Deskripsi grup (NULL untuk direct chat)
+- created_by     : Mencatat siapa yang membuat grup
+
+TABEL CONVERSATION_MEMBERS
+- last_read_at   : Untuk menghitung unread count per user
+
+TABEL MESSAGES
+- reply_to_message_id : Fitur reply/quote pesan (self-referencing)
+- updated_at          : Untuk tahu apakah pesan pernah diedit
+
+TABEL MESSAGE_STATUS_LOGS (tabel baru)
+  Alasan: Soal menyebut status read/sent/pending, tapi tidak
+  spesifik cara track-nya. Di group chat, satu pesan bisa
+  punya status berbeda untuk tiap penerima.
+  Contoh: User A kirim pesan ke grup isi 5 orang.
+    - User B: read
+    - User C: sent
+    - User D: pending
+  Kolom: message_id, user_id, status, changed_at
+
+TABEL ATTACHMENTS
+- file_name       : Nama asli file saat diupload
+- file_size_bytes : Ukuran file, untuk validasi batas upload
+
+------------------------------------------------------------
+2. ALASAN MEMILIH POSTGRESQL
+------------------------------------------------------------
+
+Data sistem chat sangat relasional (users, groups, messages,
+attachments saling terhubung), sehingga SQL lebih cocok
+dibanding NoSQL karena:
+
+1. JOIN query mudah untuk relasi antar tabel
+2. UNIQUE constraint langsung enforce "1 HP = 1 akun"
+3. Query kompleks (pesan + pengirim + status + attachment)
+   lebih simpel ditulis dengan SQL
+
+NoSQL (MongoDB/Cassandra) lebih cocok untuk skala sangat
+besar seperti WhatsApp, bukan untuk basic chat system.
+
+============================================================
